@@ -7,7 +7,7 @@ links = [
     {"name": "🛒 7-11 賣貨便 (運費優惠)", "url": "https://myship.7-11.com.tw/seller/profile?id=GM2511258996885", "color": "#E60012"},
     {"name": "🛍️ 蝦皮賣場", "url": "https://shopee.tw/beatrice726?categoryId=100016&entryPoint=ShopByPDP&itemId=58154888029", "color": "#EE4D2D"},
     {"name": "💬 LINE 官方客服", "url": "https://page.line.me/425ijwui", "color": "#06C755"},
-    {"name": "🤫 VIP 秘密社群", "url": "https://line.me/ti/g2/GoDc73jMMwXiIDyEnlKFYKbHZmH0OJsdUnb_1w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default", "color": "#00B900"}, 
+    {"name": "🤫 Line 社群", "url": "https://line.me/ti/g2/GoDc73jMMwXiIDyEnlKFYKbHZmH0OJsdUnb_1w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default", "color": "#00B900"}, 
 ]
 
 @app.route('/')
@@ -16,15 +16,69 @@ def home():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>M.TIDE 傳送門</title>
+        <title>M.TIDE 🌊 妳的自信浪潮</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
         <style>
-            body { font-family: sans-serif; background-color: #f8f9fa; text-align: center; padding: 20px; color: #333; }
-            .container { max-width: 400px; margin: 0 auto; background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-            h1 { font-size: 24px; margin-bottom: 5px; letter-spacing: 1px; }
-            p { color: #888; margin-bottom: 30px; font-size: 14px; }
-            .btn { display: block; width: 100%; padding: 16px 0; margin: 12px 0; color: white; text-decoration: none; border-radius: 50px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+            /* 👇【這裡改背景】夢幻漸層色 */
+            body { 
+                font-family: 'Noto Sans TC', sans-serif; 
+                background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); /* 備用色 */
+                background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); /* 夢幻紫粉色 */
+                min-height: 100vh;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 毛玻璃卡片效果 */
+            .container { 
+                width: 90%;
+                max-width: 400px; 
+                background: rgba(255, 255, 255, 0.25); /* 半透明白 */
+                backdrop-filter: blur(10px); /* 模糊特效 */
+                -webkit-backdrop-filter: blur(10px);
+                padding: 40px 30px; 
+                border-radius: 25px; 
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); 
+                text-align: center;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+
+            h1 { 
+                color: #fff; 
+                margin-bottom: 5px; 
+                letter-spacing: 2px; 
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            p { 
+                color: #fff; 
+                margin-bottom: 35px; 
+                font-size: 14px; 
+                opacity: 0.9;
+            }
+
+            /* 按鈕樣式 */
+            .btn { 
+                display: block; 
+                width: 100%; 
+                padding: 18px 0; 
+                margin: 15px 0; 
+                text-decoration: none; 
+                border-radius: 50px; 
+                font-weight: bold; 
+                transition: 0.3s; 
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                font-size: 16px;
+                letter-spacing: 0.5px;
+            }
+            
+            .btn:hover { 
+                transform: translateY(-3px); 
+                box-shadow: 0 6px 20px rgba(0,0,0,0.2); 
+            }
         </style>
     </head>
     <body>
@@ -32,7 +86,7 @@ def home():
             <h1>M.TIDE 🌊</h1>
             <p>妳的自信，隨浪潮而來。</p>
             {% for link in links %}
-                <a href="{{ link.url }}" class="btn" style="background-color: {{ link.color }};">
+                <a href="{{ link.url }}" class="btn" style="background-color: {{ link.color }}; color: {{ link.text_color }};">
                     {{ link.name }}
                 </a>
             {% endfor %}
