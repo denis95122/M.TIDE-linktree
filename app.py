@@ -66,7 +66,7 @@ def home():
             /* 2. 中間那個毛玻璃卡片 */
             .container { 
                 width: 90%;               /* 寬度佔螢幕 90% */
-                max-width: 400px;         /* 最大不超過 400px (手機版剛好) */
+                max-width: 350px;         /* 最大不超過 400px (手機版剛好) */
                 background: rgba(255, 255, 255, 0.25); /* 背景半透明白 */
                 backdrop-filter: blur(10px);           /* 背景模糊特效 */
                 -webkit-backdrop-filter: blur(10px);   /* 蘋果手機的模糊支援 */
