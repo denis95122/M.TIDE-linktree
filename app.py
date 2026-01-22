@@ -18,13 +18,12 @@ def home():
     <head>
         <title>M.TIDE 🌊 妳的自信浪潮</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
-            /* 👇【這裡改背景】夢幻漸層色 */
+            /* 背景設定：夢幻紫粉色漸層 */
             body { 
                 font-family: 'Noto Sans TC', sans-serif; 
-                background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); /* 備用色 */
-                background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); /* 夢幻紫粉色 */
+                background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); 
                 min-height: 100vh;
                 margin: 0;
                 display: flex;
@@ -32,12 +31,12 @@ def home():
                 justify-content: center;
             }
 
-            /* 毛玻璃卡片效果 */
+            /* 卡片設定：毛玻璃效果 */
             .container { 
                 width: 90%;
                 max-width: 400px; 
-                background: rgba(255, 255, 255, 0.25); /* 半透明白 */
-                backdrop-filter: blur(10px); /* 模糊特效 */
+                background: rgba(255, 255, 255, 0.25); 
+                backdrop-filter: blur(10px); 
                 -webkit-backdrop-filter: blur(10px);
                 padding: 40px 30px; 
                 border-radius: 25px; 
@@ -46,18 +45,25 @@ def home():
                 border: 1px solid rgba(255, 255, 255, 0.18);
             }
 
+            /* 👇【標題改這裡】變大、變粗 */
             h1 { 
                 color: #fff; 
-                margin-bottom: 5px; 
+                margin-bottom: 10px; 
                 letter-spacing: 2px; 
-                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                text-shadow: 0 2px 5px rgba(0,0,0,0.2); /* 增加陰影讓字更清楚 */
+                font-size: 42px;  /* 字體放大 */
+                font-weight: 900; /* 特粗體 */
             }
             
+            /* 👇【Slogan 改這裡】變大、變粗 */
             p { 
                 color: #fff; 
-                margin-bottom: 35px; 
-                font-size: 14px; 
-                opacity: 0.9;
+                margin-bottom: 40px; 
+                font-size: 20px;  /* 字體放大 */
+                font-weight: 700; /* 加粗 */
+                opacity: 1;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.2); /* 增加陰影 */
+                line-height: 1.5;
             }
 
             /* 按鈕樣式 */
@@ -71,7 +77,7 @@ def home():
                 font-weight: bold; 
                 transition: 0.3s; 
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                font-size: 16px;
+                font-size: 18px; /* 按鈕文字也稍微放大 */
                 letter-spacing: 0.5px;
             }
             
