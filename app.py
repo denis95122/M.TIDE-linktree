@@ -1,12 +1,12 @@
 import json
 import os
 from datetime import datetime
-from flask import Flask, render_template_string, redirect
+from flask import Flask, render_template_string, redirect, request
 
 app = Flask(__name__)
 
 # ==========================================
-# 💾 核心數據庫 (維持不變)
+# 💾 核心數據庫設定
 # ==========================================
 DATA_FILE = 'mtide_analytics.json'
 
@@ -34,13 +34,18 @@ def get_analytics_data():
     with open(DATA_FILE, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+def reset_analytics_data():
+    if os.path.exists(DATA_FILE):
+        os.remove(DATA_FILE)
+
 # ==========================================
-# 區域一：連結設定區
+# 區域一：連結設定區 (已修正！把優惠加回來了)
 # ==========================================
 links = [
     {
         "id": "711", 
-        "name": "🛒 7-11 賣貨便",  # 名字稍微縮短一點，卡片比較好放
+        # 👇 修正重點：把 "(運費優惠)" 加回來了！這是吸引點擊的關鍵！
+        "name": "🛒 7-11 賣貨便 (運費優惠)", 
         "url": "https://myship.7-11.com.tw/seller/profile?id=GM2511258996885", 
         "color": "#fff", "text_color": "#D87093", "size": "25px", "highlight": True
     },
@@ -52,22 +57,22 @@ links = [
     },
     {
         "id": "line_service",
-        "name": "💬 LINE 客服", 
+        "name": "💬 LINE 官方客服", 
         "url": "https://page.line.me/425ijwui", 
-        "color": "#fff", "text_color": "#0CCE5C", "size": "25px", "highlight": False
+        "color": "#fff", "text_color": "#06C755", "size": "25px", "highlight": False
     },
     {
         "id": "line_group",
         "name": "🤫 Line 社群", 
         "url": "https://line.me/ti/g2/GoDc73jMMwXiIDyEnlKFYKbHZmH0OJsdUnb_1w", 
-        "color": "#fff", "text_color": "#0BAA0B", "size": "25px", "highlight": False
+        "color": "#fff", "text_color": "#00B900", "size": "25px", "highlight": False
     }, 
 ]
 
 link_map = {link['id']: link['url'] for link in links}
 
 # ==========================================
-# 區域二：前台路由 (視覺維持旗艦版)
+# 區域二：前台路由
 # ==========================================
 @app.route('/')
 def home():
@@ -114,20 +119,21 @@ def go(link_id):
     log_event('click', link_id)
     return redirect(link_map[link_id])
 
+@app.route('/reset', methods=['POST'])
+def reset_data():
+    reset_analytics_data()
+    return redirect('/dashboard')
+
 # ==========================================
-# 區域三：數據戰情室 (直覺數據版)
+# 區域三：數據戰情室
 # ==========================================
 @app.route('/dashboard')
 def dashboard():
     raw_data = get_analytics_data()
     
-    # 1. 數據統計邏輯
     total_views = 0
     total_clicks = 0
-    # 初始化每個連結的計數器
     click_stats = {link['id']: {'name': link['name'], 'count': 0, 'color': link['text_color']} for link in links}
-    
-    # 初始化 24 小時數據 (00:00 ~ 23:00)
     hours = [f"{i:02d}:00" for i in range(24)]
     hour_counts = {h: 0 for h in hours}
     
@@ -138,27 +144,17 @@ def dashboard():
             total_clicks += 1
             if record['id'] in click_stats:
                 click_stats[record['id']]['count'] += 1
-        
-        # 統計時間 (只看小時)
         try:
             h = record['time'].split(' ')[1].split(':')[0] + ":00"
-            if h in hour_counts:
-                hour_counts[h] += 1
-        except:
-            pass
+            if h in hour_counts: hour_counts[h] += 1
+        except: pass
 
-    # 準備給圖表的數據
-    bar_data = [hour_counts[h] for h in hours] # 24小時的數據
-    
-    # 準備給圓餅圖的數據
+    bar_data = [hour_counts[h] for h in hours]
     pie_labels = [stat['name'] for stat in click_stats.values()]
     pie_data = [stat['count'] for stat in click_stats.values()]
     pie_colors = [stat['color'] for stat in click_stats.values()]
-    
-    # 轉換率計算
     conversion_rate = 0
-    if total_views > 0:
-        conversion_rate = round((total_clicks / total_views) * 100, 1)
+    if total_views > 0: conversion_rate = round((total_clicks / total_views) * 100, 1)
 
     html = """
     <!DOCTYPE html>
@@ -170,36 +166,21 @@ def dashboard():
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
             body { font-family: 'Noto Sans TC', sans-serif; padding: 20px; background: #f0f2f5; color: #333; max-width: 800px; margin: 0 auto; }
-            
-            /* 標題區 */
             .header { text-align: center; margin-bottom: 30px; }
             .header h1 { color: #D87093; margin: 0; font-size: 28px; }
-            .header p { color: #666; margin: 5px 0 0; }
-
-            /* KPI 大數字卡片 */
             .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
             .kpi-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
             .kpi-num { font-size: 32px; font-weight: 900; color: #333; margin: 5px 0; }
             .kpi-label { font-size: 14px; color: #888; font-weight: bold; }
-
-            /* 分區標題 */
             .section-title { font-size: 18px; font-weight: bold; margin: 30px 0 15px; border-left: 5px solid #D87093; padding-left: 10px; }
-
-            /* ✨ 新增：個別獨立框框 (通路戰績) */
             .channel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-            .channel-card { 
-                background: white; padding: 15px; border-radius: 10px; 
-                box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-                border-left: 5px solid #ccc; /* 預設灰色 */
-                display: flex; flex-direction: column; justify-content: center;
-            }
+            .channel-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #ccc; display: flex; flex-direction: column; justify-content: center; }
             .channel-name { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; }
             .channel-count { font-size: 24px; font-weight: 900; color: #333; }
-            
-            /* 圖表容器 */
             .chart-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-
-            .btn-back { display: block; text-align: center; margin-top: 40px; padding: 15px; background: #D87093; color: white; text-decoration: none; border-radius: 50px; font-weight: bold; }
+            .btn-reset { display: block; width: 100%; max-width: 200px; margin: 50px auto 20px; padding: 10px; background: white; color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+            .btn-reset:hover { background: #ff4d4f; color: white; }
+            .btn-back { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; }
         </style>
     </head>
     <body>
@@ -209,22 +190,12 @@ def dashboard():
         </div>
 
         <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label">👁️ 累積瀏覽</div>
-                <div class="kpi-num">{{ total_views }}</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label">👆 累積點擊</div>
-                <div class="kpi-num">{{ total_clicks }}</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-label">🔥 轉換率</div>
-                <div class="kpi-num" style="color: #D87093;">{{ conversion_rate }}%</div>
-            </div>
+            <div class="kpi-card"><div class="kpi-label">👁️ 累積瀏覽</div><div class="kpi-num">{{ total_views }}</div></div>
+            <div class="kpi-card"><div class="kpi-label">👆 累積點擊</div><div class="kpi-num">{{ total_clicks }}</div></div>
+            <div class="kpi-card"><div class="kpi-label">🔥 轉換率</div><div class="kpi-num" style="color: #D87093;">{{ conversion_rate }}%</div></div>
         </div>
 
-        <div class="section-title">📦 通路點擊排行 (獨立分析)</div>
-        
+        <div class="section-title">📦 通路點擊排行</div>
         <div class="channel-grid">
             {% for stat in click_stats.values() %}
             <div class="channel-card" style="border-left-color: {{ stat.color }}">
@@ -234,68 +205,36 @@ def dashboard():
             {% endfor %}
         </div>
 
-        <div class="chart-box">
-            <canvas id="pieChart" style="max-height: 250px;"></canvas>
-        </div>
+        <div class="section-title">📊 佔比分析</div>
+        <div class="chart-box"><canvas id="pieChart" style="max-height: 250px;"></canvas></div>
 
-        <div class="section-title">🕒 24小時活躍時段分析</div>
-        <div class="chart-box">
-            <canvas id="barChart"></canvas>
-            <p style="text-align:center; color:#999; font-size:12px; margin-top:10px;">X軸：00點~23點 / Y軸：活躍次數</p>
-        </div>
+        <div class="section-title">🕒 活躍時段</div>
+        <div class="chart-box"><canvas id="barChart"></canvas></div>
+
+        <form action="/reset" method="POST" onsubmit="return confirm('確定要清空所有數據嗎？這個動作無法復原喔！');">
+            <button type="submit" class="btn-reset">🗑️ 清空所有數據 (重製)</button>
+        </form>
 
         <a href="/" class="btn-back">返回網站首頁</a>
 
         <script>
-            // 圓餅圖設定
             new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
-                data: {
-                    labels: {{ pie_labels | tojson }},
-                    datasets: [{
-                        data: {{ pie_data | tojson }},
-                        backgroundColor: {{ pie_colors | tojson }},
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
-                }
+                data: { labels: {{ pie_labels | tojson }}, datasets: [{ data: {{ pie_data | tojson }}, backgroundColor: {{ pie_colors | tojson }}, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
             });
-
-            // 長條圖設定 (取代原本看不懂的波浪)
             new Chart(document.getElementById('barChart'), {
-                type: 'bar', // 改成 Bar (長條圖) 最直覺
-                data: {
-                    labels: {{ hours | tojson }}, // 00:00 - 23:00
-                    datasets: [{
-                        label: '活躍人次',
-                        data: {{ bar_data | tojson }},
-                        backgroundColor: '#D87093', // 品牌色
-                        borderRadius: 4 // 柱子圓角比較好看
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } }, // 確保 Y 軸是整數
-                        x: { grid: { display: false } } // 去掉 X 軸格線比較乾淨
-                    },
-                    plugins: { legend: { display: false } } // 隱藏圖例
-                }
+                type: 'bar',
+                data: { labels: {{ hours | tojson }}, datasets: [{ label: '活躍人次', data: {{ bar_data | tojson }}, backgroundColor: '#D87093', borderRadius: 4 }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
         </script>
     </body>
     </html>
     """
     return render_template_string(html, 
-                                  total_views=total_views, 
-                                  total_clicks=total_clicks, 
-                                  conversion_rate=conversion_rate,
-                                  click_stats=click_stats,
-                                  pie_labels=pie_labels, pie_data=pie_data, pie_colors=pie_colors,
+                                  total_views=total_views, total_clicks=total_clicks, conversion_rate=conversion_rate,
+                                  click_stats=click_stats, pie_labels=pie_labels, pie_data=pie_data, pie_colors=pie_colors,
                                   hours=hours, bar_data=bar_data)
 
 if __name__ == '__main__':
