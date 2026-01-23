@@ -1,14 +1,19 @@
 import json
 import os
 from datetime import datetime
-from flask import Flask, render_template_string, redirect, request
+from flask import Flask, render_template_string, redirect, request, send_from_directory
 
 app = Flask(__name__)
 
 # ==========================================
-# 💾 核心數據庫設定
+# 💾 核心設定
 # ==========================================
 DATA_FILE = 'mtide_analytics.json'
+# 👇 這裡設定圖片檔名，請確認你的檔案真的是這個名字！
+LOGO_FILENAME = 'logo.jpg' 
+
+# 取得目前程式所在的資料夾路徑 (這樣程式才不會迷路)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def log_event(event_type, link_id=None):
     data = []
@@ -18,7 +23,6 @@ def log_event(event_type, link_id=None):
                 data = json.load(f)
         except:
             data = []
-            
     new_record = {
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "type": event_type, 
@@ -39,12 +43,11 @@ def reset_analytics_data():
         os.remove(DATA_FILE)
 
 # ==========================================
-# 區域一：連結設定區 (已修正！把優惠加回來了)
+# 區域一：連結設定區
 # ==========================================
 links = [
     {
         "id": "711", 
-        # 👇 修正重點：把 "(運費優惠)" 加回來了！這是吸引點擊的關鍵！
         "name": "🛒 7-11 賣貨便 (運費優惠)", 
         "url": "https://myship.7-11.com.tw/seller/profile?id=GM2511258996885", 
         "color": "#fff", "text_color": "#D87093", "size": "25px", "highlight": True
@@ -63,7 +66,7 @@ links = [
     },
     {
         "id": "line_group",
-        "name": "🤫 Line 社群", 
+        "name": "💬 Line 社群", 
         "url": "https://line.me/ti/g2/GoDc73jMMwXiIDyEnlKFYKbHZmH0OJsdUnb_1w", 
         "color": "#fff", "text_color": "#00B900", "size": "25px", "highlight": False
     }, 
@@ -74,6 +77,13 @@ link_map = {link['id']: link['url'] for link in links}
 # ==========================================
 # 區域二：前台路由
 # ==========================================
+
+# ✨ 修正版：更穩定的圖片讀取方式
+@app.route('/logo_img')
+def serve_logo():
+    # 直接從程式所在的資料夾找圖片
+    return send_from_directory(BASE_DIR, LOGO_FILENAME)
+
 @app.route('/')
 def home():
     log_event('view')
@@ -88,8 +98,41 @@ def home():
         <meta property="og:description" content="專為女性設計的包包品牌，展現妳的自信與優雅。">
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
-            body { font-family: 'Noto Sans TC', sans-serif; background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; }
-            .container { width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 40px 30px; border-radius: 25px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); text-align: center; border: 1px solid rgba(255, 255, 255, 0.18); }
+            body { 
+                font-family: 'Noto Sans TC', sans-serif; 
+                background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%); 
+                min-height: 100vh; 
+                margin: 0; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+            }
+            .container { 
+                width: 90%; 
+                max-width: 400px; 
+                background: rgba(255, 255, 255, 0.25); 
+                backdrop-filter: blur(10px); 
+                -webkit-backdrop-filter: blur(10px); 
+                padding: 40px 30px; 
+                border-radius: 25px; 
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); 
+                text-align: center; 
+                border: 1px solid rgba(255, 255, 255, 0.18); 
+            }
+            
+            /* ✨ 商徽樣式：圓形裁切 + 質感邊框 */
+            .logo-circle {
+                width: 180px;    /*稍微加大一點點，更顯眼*/
+                height: 180px;
+                border-radius: 50%;    
+                object-fit: cover;     
+                border: 4px solid rgba(255,255,255, 0.8); 
+                box-shadow: 0 4px 15px rgba(0,0,0,0.15);  
+                margin-bottom: 1px;
+                background-color: #fff; 
+                display: inline-block; /* 確保它會乖乖置中 */
+            }
+
             h1 { color: #fff; margin-bottom: 10px; letter-spacing: 2px; text-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 42px; font-weight: 900; }
             p { color: #fff; margin-bottom: 40px; font-size: 20px; font-weight: 700; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2); line-height: 1.5; }
             .btn { display: block; width: 100%; padding: 18px 0; margin: 15px 0; text-decoration: none; border-radius: 50px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1); letter-spacing: 0.5px; }
@@ -101,6 +144,8 @@ def home():
     </head>
     <body>
         <div class="container">
+            <img src="/logo_img" alt="M.TIDE Logo" class="logo-circle">
+            
             <h1>M.TIDE 🌊</h1>
             <p>妳的自信，隨浪潮而來。</p>
             {% for link in links %}
